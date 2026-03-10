@@ -1,29 +1,24 @@
-# Fly.io config for the Sports Intel API backend
-# App name must be unique — change before first deploy:
-#   fly launch --name your-app-name
+# fly.toml app configuration file generated for sports-intel-api on 2026-03-10T17:15:03-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app            = "sports-intel-api"
-primary_region = "ord"
+app = 'sports-intel-api'
+primary_region = 'ord'
 
 [build]
   dockerfile = "backend/Dockerfile"
 
 [http_service]
-  internal_port       = 8090
-  force_https         = true
-  auto_stop_machines  = "stop"
+  internal_port = 8090
+  force_https = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
-
-  [http_service.concurrency]
-    type       = "connections"
-    hard_limit = 25
-    soft_limit = 20
+  processes = ['app']
 
 [[vm]]
-  memory   = "512mb"
-  cpu_kind = "shared"
-  cpus     = 1
-
-# Secrets (set via CLI, never in this file):
-#   fly secrets set BALLDONTLIE_API_KEY=... KALSHI_API_KEY=...
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 1024
