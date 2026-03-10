@@ -42,7 +42,7 @@ function PickRow({ pick }: { pick: TrackerPick }) {
     <tr>
       <td>{pick.pick_date}</td>
       <td className="cell-game-label">{pick.game_label}</td>
-      <td><CategoryBadge category={pick.category} /></td>
+      <td><CategoryBadge category={pick.category as never} /></td>
       <td className="cell-contract" title={pick.title}>{pick.title}</td>
       <td><span className="odds-btn">{pick.american_odds}</span></td>
       <td className={pick.raw_edge > 0 ? "positive" : "negative"}>
@@ -99,7 +99,8 @@ export default function Tracker() {
   const unsettled = (picksData?.picks ?? []).filter(p => !p.settlements?.[0]);
 
   // Equity curve colour
-  const lastEq      = pnl?.equity_curve.at(-1)?.cumulative ?? 0;
+  const eq          = pnl?.equity_curve ?? [];
+  const lastEq      = eq.length > 0 ? eq[eq.length - 1].cumulative : 0;
   const curveColour = lastEq >= 0 ? "var(--positive)" : "var(--negative)";
 
   return (
@@ -163,7 +164,7 @@ export default function Tracker() {
           </button>
           {(mutLog.data || mutSettle.data || mutClosing.data) && (
             <span style={{ fontSize: 12, color: "var(--text-muted)", alignSelf: "center" }}>
-              {JSON.stringify(mutLog.data ?? mutSettle.data ?? mutClosing.data)}
+              {JSON.stringify((mutLog.data ?? mutSettle.data ?? mutClosing.data) as Record<string, unknown>)}
             </span>
           )}
         </div>
@@ -196,7 +197,7 @@ export default function Tracker() {
             <div className="section-header">
               <span className="section-title">Equity Curve</span>
               <span className="section-count">
-                {usd(pnl!.equity_curve.at(-1)?.cumulative ?? null)} cumulative
+                {usd(eq.length > 0 ? eq[eq.length - 1].cumulative : null)} cumulative
               </span>
             </div>
             <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 8, padding: "16px 8px 8px" }}>
@@ -209,7 +210,7 @@ export default function Tracker() {
                   <Tooltip
                     contentStyle={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 6 }}
                     labelStyle={{ color: "var(--text-muted)", fontSize: 11 }}
-                    formatter={(v: number) => [`$${v.toFixed(2)}`, "Cumulative P&L"]}
+                    formatter={(v) => [`$${Number(v).toFixed(2)}`, "Cumulative P&L"]}
                   />
                   <ReferenceLine y={0} stroke="var(--border)" strokeDasharray="4 2" />
                   <Line type="monotone" dataKey="cumulative" stroke={curveColour}
@@ -234,7 +235,7 @@ export default function Tracker() {
                 <tbody>
                   {Object.entries(pnl.by_category).map(([cat, s]) => (
                     <tr key={cat}>
-                      <td><CategoryBadge category={cat} /></td>
+                      <td><CategoryBadge category={cat as never} /></td>
                       <td>{s.picks}</td>
                       <td>{s.wins}</td>
                       <td>{s.picks > 0 ? pct(s.wins / s.picks) : "—"}</td>
