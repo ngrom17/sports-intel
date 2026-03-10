@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build output
+frontend/dist/
+frontend/.vite/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+backend/.venv/
+backend/venv/
+.venv/
+*.egg-info/
+
+# Environment
+.env
+.env.local
+.env.production
+*.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Screenshots
+.screenshots/
+
+# Fly.io
+.fly/

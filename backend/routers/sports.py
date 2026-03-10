@@ -1,0 +1,88 @@
+"""Sports predictions router — NBA live, other sports stubbed."""
+from datetime import date
+from fastapi import APIRouter, Query
+
+router = APIRouter()
+
+SUPPORTED_SPORTS = {
+    "nba":   {"label": "NBA",   "live": True},
+    "nfl":   {"label": "NFL",   "live": False},
+    "ncaab": {"label": "NCAAB", "live": False},
+    "mlb":   {"label": "MLB",   "live": False},
+    "nhl":   {"label": "NHL",   "live": False},
+}
+
+
+@router.get("/sports")
+def list_sports():
+    """Return all supported sports and their availability."""
+    return {"sports": [{"id": k, **v} for k, v in SUPPORTED_SPORTS.items()]}
+
+
+@router.get("/predictions")
+def get_predictions(
+    sport:  str   = Query(default="nba"),
+    # ── Model blend ──────────────────────────────────────────
+    w_xgb:  float = Query(default=1.0,  ge=0.0,  le=2.0),
+    kelly_fraction: float = Query(default=1.0, ge=0.1, le=1.0),
+    # ── HOMERUN thresholds ────────────────────────────────────
+    homerun_edge:       float = Query(default=0.10, ge=0.01, le=0.30),
+    homerun_model_prob: float = Query(default=0.65, ge=0.50, le=0.90),
+    # ── UNDERVALUED threshold ─────────────────────────────────
+    undervalued_edge: float = Query(default=0.05, ge=0.01, le=0.20),
+    # ── UNDERDOG thresholds ───────────────────────────────────
+    underdog_kalshi_ceiling: float = Query(default=0.38, ge=0.20, le=0.50),
+    underdog_model_floor:    float = Query(default=0.48, ge=0.35, le=0.65),
+    # ── SHARP band ────────────────────────────────────────────
+    sharp_edge_min: float = Query(default=0.03, ge=0.01, le=0.10),
+    sharp_edge_max: float = Query(default=0.05, ge=0.02, le=0.15),
+):
+    """Unified predictions endpoint. Returns live data for NBA, stub for others."""
+    sport = sport.lower()
+    if sport not in SUPPORTED_SPORTS:
+        return {"error": f"Unknown sport: {sport}", "rows": [], "games": []}
+
+    if not SUPPORTED_SPORTS[sport]["live"]:
+        return {
+            "sport":         sport,
+            "games_count":   0,
+            "markets_count": 0,
+            "positive_ev":   0,
+            "positive_edge": 0,
+            "stats_loaded":  False,
+            "coming_soon":   True,
+            "games":         [],
+            "rows":          [],
+        }
+
+    # NBA live path
+    from nba.fetch import fetch_games, fetch_kalshi_markets, fetch_nba_stats, load_schedule
+    from nba.model import build_all_rows
+
+    games       = fetch_games(date.today())
+    kalshi      = fetch_kalshi_markets()
+    stats_df    = fetch_nba_stats()
+    schedule_df = load_schedule()
+
+    weights = {"w_xgb": w_xgb}
+    thresholds = {
+        "HOMERUN":     {"edge": homerun_edge, "model_prob": homerun_model_prob},
+        "UNDERVALUED": {"edge": undervalued_edge},
+        "UNDERDOG":    {"kalshi_prob": underdog_kalshi_ceiling, "model_prob": underdog_model_floor},
+        "SHARP":       {"edge_min": sharp_edge_min, "edge_max": sharp_edge_max},
+    }
+
+    df   = build_all_rows(games, kalshi, stats_df, schedule_df, weights, thresholds, kelly_fraction)
+    rows = df.to_dict(orient="records") if not df.empty else []
+
+    return {
+        "sport":         "nba",
+        "games_count":   len(games),
+        "markets_count": len(rows),
+        "positive_ev":   sum(1 for r in rows if r.get("ev", 0) > 0),
+        "positive_edge": sum(1 for r in rows if r.get("edge", 0) > 0),
+        "stats_loaded":  any(r.get("stats_loaded") for r in rows),
+        "coming_soon":   False,
+        "games":         games,
+        "rows":          rows,
+    }

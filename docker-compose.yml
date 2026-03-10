@@ -1,0 +1,36 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8090:8000"
+    volumes:
+      - ./backend:/app
+    env_file: .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    ports:
+      - "3090:3000"
+    volumes:
+      - ./frontend:/app
+      - nba-node-modules:/app/node_modules
+      - nba-next-cache:/app/.next
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://100.108.230.75:8090}
+      NEXT_TELEMETRY_DISABLED: "1"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  nba-node-modules:
+  nba-next-cache:
