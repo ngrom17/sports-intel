@@ -11,13 +11,15 @@ def _today() -> date:
     return datetime.now(_ET).date()
 
 def _clean_rows(rows: list) -> list:
-    """Replace NaN/Inf float values with 0 so FastAPI can JSON-serialize them."""
-    float_keys = {"ev", "kelly", "edge", "kalshi_prob", "model_prob"}
+    """
+    Replace NaN/Inf float values with JSON-safe equivalents.
+    Pandas to_dict() converts None in mixed-type columns to float('nan'),
+    which json.dumps() rejects. Scan all fields in every row.
+    """
     for r in rows:
-        for k in float_keys:
-            v = r.get(k)
+        for k, v in list(r.items()):
             if isinstance(v, float) and not math.isfinite(v):
-                r[k] = 0.0
+                r[k] = None   # None serializes as JSON null
     return rows
 
 router = APIRouter()
