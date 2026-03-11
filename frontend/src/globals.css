@@ -1805,3 +1805,136 @@ input[type="range"]:focus-visible {
   color: var(--text-muted);
   font-family: var(--font-mono);
 }
+
+/* ── Landing page v2 additions ──────────────────────────────── */
+
+/* Eyebrow tag above hero title */
+.lp-eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid rgba(26,109,255,0.2);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  margin-bottom: 20px;
+}
+
+/* SVG icon wrapper in feature cards */
+.lp-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+/* Trust strip below hero CTAs */
+.lp-trust-strip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.lp-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.lp-trust-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+@media (max-width: 639px) {
+  .lp-trust-sep { display: none; }
+  .lp-trust-strip { gap: 10px; }
+}
+
+/* Collapsible header inside transparency card */
+.lp-collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: var(--text-primary);
+  gap: 8px;
+}
+.lp-collapsible-header:hover { color: var(--accent); }
+
+/* Disclaimer accordion toggle */
+.lp-disclaimer-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 14px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all var(--transition);
+  letter-spacing: 0.01em;
+}
+.lp-disclaimer-toggle:hover {
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+.lp-disclaimer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 2px;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+  overflow: hidden;
+}
+.lp-disclaimer-body .landing-disclaimer {
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+}
+.lp-disclaimer-body .landing-disclaimer:last-child {
+  border-bottom: none;
+}
+
+/* Responsive: tighter hero on mobile */
+@media (max-width: 639px) {
+  .landing-hero-title { font-size: clamp(2rem, 8vw, 3rem); }
+  .landing-hero-sub   { font-size: 15px; }
+  .landing-cta-primary, .landing-cta-ghost { width: 100%; justify-content: center; text-align: center; }
+  .landing-hero-actions { flex-direction: column; }
+  .landing-features { grid-template-columns: 1fr; }
+  .landing-transparency-grid { grid-template-columns: 1fr; }
+}
+
+/* Tablet */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .landing-features { grid-template-columns: repeat(2, 1fr); }
+  .landing-transparency-grid { grid-template-columns: repeat(2, 1fr); }
+}
