@@ -1840,6 +1840,7 @@ input[type="range"]:focus-visible {
 
 /* Trust strip below hero CTAs */
 .lp-trust-strip {
+  justify-content: center;
   display: flex;
   align-items: center;
   gap: 16px;
