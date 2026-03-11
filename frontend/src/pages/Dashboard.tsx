@@ -54,8 +54,9 @@ export default function Dashboard() {
     gameMap.get(r.game_id)!.push(r);
   }
 
-  const liveGames = data?.games?.filter((g) => g.status === "in_progress") ?? [];
-  const lowRows   = data?.rows.filter((r) => LOW_EDGE_CATS.has(r.category)) ?? [];
+  const liveGames     = data?.games?.filter((g) => g.status === "in_progress") ?? [];
+  const scheduledGames = data?.games?.filter((g) => g.status === "scheduled") ?? [];
+  const lowRows       = data?.rows.filter((r) => LOW_EDGE_CATS.has(r.category)) ?? [];
 
   const settingsBtnLabel = manualMode
     ? `⚙ Manual — ${settings.wXgb.toFixed(2)}×`
@@ -176,15 +177,45 @@ export default function Dashboard() {
 
         {data && !data.coming_soon && data.games_count > 0 && (
           <>
+            {/* Live scores strip */}
+            {liveGames.length > 0 && (
+              <div className="section">
+                <div className="section-header">
+                  <span className="section-title">
+                    <span className="live-dot" style={{ display: "inline-block", marginRight: 8, verticalAlign: "middle" }} />
+                    Live Now
+                  </span>
+                  <span className="section-count">{liveGames.length}</span>
+                </div>
+                <div className="live-scores-strip">
+                  {liveGames.map((game) => (
+                    <div key={game.game_id} className="live-score-card">
+                      <div className="live-score-teams">
+                        <span className="live-score-abbr">{game.away_abbr}</span>
+                        <span className="live-score-num">{game.away_score}</span>
+                        <span className="live-score-sep">–</span>
+                        <span className="live-score-num">{game.home_score}</span>
+                        <span className="live-score-abbr">{game.home_abbr}</span>
+                      </div>
+                      <div className="live-score-clock">
+                        {game.period ? `P${game.period}` : ""}
+                        {game.time_remaining ? ` · ${game.time_remaining}` : ""}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <TopPicks rows={data.rows} />
 
             <div className="section">
               <div className="section-header">
-                <span className="section-title">All Games</span>
-                <span className="section-count">{data.games_count}</span>
+                <span className="section-title">Upcoming Games</span>
+                <span className="section-count">{scheduledGames.length}</span>
               </div>
               <div className="games-list">
-                {data.games.map((game) => (
+                {scheduledGames.map((game) => (
                   <GameCard
                     key={game.game_id}
                     game={game}

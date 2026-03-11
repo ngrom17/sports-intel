@@ -237,9 +237,9 @@ def build_all_rows(
                     continue
                 away_phrase, home_phrase = parsed
 
-                # Match to a game from NHL API
+                # Match to a game from NHL API — pre-game only
                 game = _match_game(away_phrase, home_phrase, games)
-                if not game:
+                if not game or game.get("status") != "scheduled":
                     continue
 
                 home_abbr = game["home_abbr"]
@@ -256,7 +256,7 @@ def build_all_rows(
                 if not parsed:
                     continue
                 game = _match_game(parsed[0], parsed[1], games)
-                if not game:
+                if not game or game.get("status") != "scheduled":
                     continue
                 home_abbr  = game["home_abbr"]
                 away_abbr  = game["away_abbr"]
