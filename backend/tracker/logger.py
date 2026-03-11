@@ -48,6 +48,18 @@ def log_daily_picks(
     if not rows:
         return {"status": "no_data", "sport": sport, "date": str(today), "picks_logged": 0}
 
+    # Short-circuit if already logged today — avoids polluting snapshot/prediction tables
+    existing = (
+        db.table("daily_picks")
+        .select("id", count="exact")
+        .eq("sport", sport)
+        .eq("pick_date", str(today))
+        .execute()
+    )
+    if existing.count and existing.count > 0:
+        return {"status": "already_logged", "sport": sport, "date": str(today),
+                "eligible": 0, "picks_logged": 0}
+
     game_lookup: dict[int, dict] = {g["game_id"]: g for g in games}
     model_ver = MODEL_VERSION.get(sport, f"{sport}-v1")
     now = datetime.now(timezone.utc).isoformat()
