@@ -1,0 +1,63 @@
+name: Tracker Daily Automation
+
+on:
+  schedule:
+    # All times UTC. NBA season runs Oct–Jun.
+    - cron: '0 16 * * *'    # 11:00 AM ET — Log Today's Picks
+    - cron: '30 23 * * *'   # 6:30 PM ET  — Capture Closing Prices
+    - cron: '0 6 * * *'     # 1:00 AM ET  — Settle Final Games
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to run manually'
+        required: true
+        type: choice
+        options: [log, capture-closing, settle]
+      sport:
+        description: 'Sport (nba, nhl, ncaab, mlb)'
+        required: false
+        default: 'nba'
+
+jobs:
+  log-picks:
+    name: Log Today's Picks
+    if: >
+      github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'log' ||
+      github.event_name == 'schedule' && startsWith(github.event.schedule, '0 16')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log picks — NBA
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            "${{ secrets.API_URL }}/api/tracker/log?sport=nba")
+          echo "NBA log status: $response"
+          [ "$response" = "200" ] || exit 1
+
+      - name: Log picks — full response
+        run: |
+          curl -s -X POST "${{ secrets.API_URL }}/api/tracker/log?sport=nba" | tee /tmp/log_result.json
+          echo ""
+
+  capture-closing:
+    name: Capture Closing Prices
+    if: >
+      github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'capture-closing' ||
+      github.event_name == 'schedule' && startsWith(github.event.schedule, '30 23')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Capture closing — NBA
+        run: |
+          curl -s -X POST "${{ secrets.API_URL }}/api/tracker/capture-closing?sport=nba" | tee /tmp/closing_result.json
+          echo ""
+
+  settle:
+    name: Settle Final Games
+    if: >
+      github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'settle' ||
+      github.event_name == 'schedule' && startsWith(github.event.schedule, '0 6')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Settle — NBA
+        run: |
+          curl -s -X POST "${{ secrets.API_URL }}/api/tracker/settle?sport=nba" | tee /tmp/settle_result.json
+          echo ""
