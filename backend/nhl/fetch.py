@@ -74,7 +74,7 @@ def fetch_games(game_date: date) -> List[Dict]:
     try:
         resp = requests.get(
             f"{NHL_API_BASE}/score/{game_date.isoformat()}",
-            timeout=15,
+            timeout=8,
             allow_redirects=True,
         )
         resp.raise_for_status()
@@ -125,29 +125,38 @@ def fetch_games(game_date: date) -> List[Dict]:
 
 def fetch_games_for_markets(kalshi_by_type: Dict[str, List[Dict]]) -> List[Dict]:
     """
-    Fetch NHL games for every date that has open Kalshi markets.
-    Falls back to today (ET) if no market dates are found.
-    Returns a merged, deduplicated list of games across all dates.
+    Fetch NHL games for every date that has open Kalshi markets, in parallel.
+    Always includes today (ET) so live games show alongside upcoming markets.
+    Returns a merged, deduplicated list sorted by tipoff time.
     """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     from zoneinfo import ZoneInfo
     from datetime import datetime as _dt
 
     et_today = _dt.now(ZoneInfo("America/New_York")).date()
     market_dates = dates_in_markets(kalshi_by_type)
+    fetch_dates  = market_dates | {et_today}
 
-    # Always include today so live games show; add all Kalshi market dates
-    fetch_dates = market_dates | {et_today}
+    results: List[Dict] = []
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = {executor.submit(fetch_games, d): d for d in fetch_dates}
+        for fut in as_completed(futures, timeout=12):
+            try:
+                results.extend(fut.result())
+            except Exception:
+                pass
 
-    seen_ids: set = set()
-    all_games: List[Dict] = []
-    for d in sorted(fetch_dates):
-        for g in fetch_games(d):
-            gid = g["game_id"]
-            if gid not in seen_ids:
-                seen_ids.add(gid)
-                all_games.append(g)
+    # Deduplicate by game_id
+    seen: set = set()
+    unique: List[Dict] = []
+    for g in results:
+        gid = g["game_id"]
+        if gid not in seen:
+            seen.add(gid)
+            unique.append(g)
 
-    return all_games
+    unique.sort(key=lambda g: g.get("tipoff_utc", ""))
+    return unique
 
 
 # ── NHL standings (1-hour cache) ───────────────────────────────────────────
