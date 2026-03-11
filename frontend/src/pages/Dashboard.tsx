@@ -249,7 +249,9 @@ export default function Dashboard() {
                           {lowRows.map((r) => (
                             <tr key={r.ticker}>
                               <td className="cell-game-label">{r.game_label}</td>
-                              <td className="cell-contract" title={r.title}>{r.title}</td>
+                              <td className="cell-contract" title={r.title}>
+                                {r.market_type === "total" && r.line != null ? `Over ${r.line}` : r.title}
+                              </td>
                               <td><span className="odds-btn">{r.american_odds}</span></td>
                               <td className={`cell-edge ${r.edge > 0 ? "positive" : "negative"}`}>
                                 {r.edge > 0 ? "+" : ""}{pct(r.edge)}

@@ -27,7 +27,9 @@ export default function TopPicks({ rows }: { rows: PredictionRow[] }) {
               <CategoryBadge category={r.category} />
               <span className="pick-card-game">{r.game_label}</span>
             </div>
-            <div className="pick-card-contract">{r.title}</div>
+            <div className="pick-card-contract">
+              {r.market_type === "total" && r.line != null ? `Over ${r.line}` : r.title}
+            </div>
             <div className="pick-card-metrics">
               <div className="pick-metric">
                 <span className="pick-metric-label">Edge</span>

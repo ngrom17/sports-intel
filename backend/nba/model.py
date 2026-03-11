@@ -177,16 +177,9 @@ def build_all_rows(games, kalshi_by_type, stats_df, schedule_df, weights,
                 elif market_type == "spread":
                     model_prob = kalshi_prob
                 elif market_type == "total":
-                    if features is not None and parsed["line"] is not None:
-                        try:
-                            frame = features.copy()
-                            frame["OU"] = parsed["line"]
-                            ou_probs   = _predict_probs(_xgb_uo, frame.values.astype(float).reshape(1, -1))[0]
-                            model_prob = float(ou_probs[1])
-                        except Exception:
-                            model_prob = kalshi_prob
-                    else:
-                        model_prob = kalshi_prob
+                    # UO model is 50.1% (coin flip) and does not vary by line.
+                    # Use kalshi_prob until a valid totals model is trained → edge = 0.
+                    model_prob = kalshi_prob
                 else:
                     model_prob = kalshi_prob
 
@@ -218,6 +211,7 @@ def build_all_rows(games, kalshi_by_type, stats_df, schedule_df, weights,
                     "kelly":         kelly,
                     "volume":        mkt.get("volume", 0),
                     "stats_loaded":  stats_loaded,
+                    "line":          parsed.get("line"),
                 })
 
     return pd.DataFrame(rows) if rows else pd.DataFrame()

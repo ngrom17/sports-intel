@@ -59,6 +59,7 @@ export interface PredictionRow {
   kelly:         number;
   volume:        number;
   stats_loaded:  boolean;
+  line:          number | null;
 }
 
 export interface PredictionsResponse {

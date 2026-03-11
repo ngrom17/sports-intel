@@ -4,6 +4,15 @@ import CategoryBadge from "./CategoryBadge";
 function pct(v: number) { return `${(v * 100).toFixed(1)}%`; }
 function evFmt(v: number) { return `${v >= 0 ? "+" : ""}$${Math.abs(v).toFixed(2)}`; }
 
+function contractLabel(r: PredictionRow): string {
+  // Kalshi total titles are generic ("Team A at Team B: Total Points").
+  // The line is parsed from the ticker (YES = over the line).
+  if (r.market_type === "total" && r.line != null) {
+    return `Over ${r.line}`;
+  }
+  return r.title;
+}
+
 export default function MarketTable({ rows }: { rows: PredictionRow[] }) {
   if (rows.length === 0) {
     return (
@@ -31,7 +40,7 @@ export default function MarketTable({ rows }: { rows: PredictionRow[] }) {
         <tbody>
           {rows.map((r) => (
             <tr key={r.ticker}>
-              <td className="cell-contract" title={r.title}>{r.title}</td>
+              <td className="cell-contract" title={r.title}>{contractLabel(r)}</td>
               <td className="cell-pct">{pct(r.kalshi_prob)}</td>
               <td><span className="odds-btn">{r.american_odds}</span></td>
               <td className="cell-pct">{pct(r.model_prob)}</td>
