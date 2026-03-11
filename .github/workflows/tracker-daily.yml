@@ -13,10 +13,10 @@ on:
         required: true
         type: choice
         options: [log, capture-closing, settle]
-      sport:
-        description: 'Sport (nba, nhl, ncaab, mlb)'
-        required: false
-        default: 'nba'
+
+env:
+  # Strip any trailing slash so URLs always join cleanly
+  BASE: ${{ secrets.API_URL }}
 
 jobs:
   log-picks:
@@ -26,17 +26,10 @@ jobs:
       github.event_name == 'schedule' && startsWith(github.event.schedule, '0 16')
     runs-on: ubuntu-latest
     steps:
-      - name: Log picks — NBA
+      - name: POST /tracker/log — NBA
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
-            "${{ secrets.API_URL }}/api/tracker/log?sport=nba")
-          echo "NBA log status: $response"
-          [ "$response" = "200" ] || exit 1
-
-      - name: Log picks — full response
-        run: |
-          curl -s -X POST "${{ secrets.API_URL }}/api/tracker/log?sport=nba" | tee /tmp/log_result.json
-          echo ""
+          BASE="${BASE%/}"
+          curl -sf -X POST "${BASE}/api/tracker/log?sport=nba"
 
   capture-closing:
     name: Capture Closing Prices
@@ -45,10 +38,10 @@ jobs:
       github.event_name == 'schedule' && startsWith(github.event.schedule, '30 23')
     runs-on: ubuntu-latest
     steps:
-      - name: Capture closing — NBA
+      - name: POST /tracker/capture-closing — NBA
         run: |
-          curl -s -X POST "${{ secrets.API_URL }}/api/tracker/capture-closing?sport=nba" | tee /tmp/closing_result.json
-          echo ""
+          BASE="${BASE%/}"
+          curl -sf -X POST "${BASE}/api/tracker/capture-closing?sport=nba"
 
   settle:
     name: Settle Final Games
@@ -57,7 +50,7 @@ jobs:
       github.event_name == 'schedule' && startsWith(github.event.schedule, '0 6')
     runs-on: ubuntu-latest
     steps:
-      - name: Settle — NBA
+      - name: POST /tracker/settle — NBA
         run: |
-          curl -s -X POST "${{ secrets.API_URL }}/api/tracker/settle?sport=nba" | tee /tmp/settle_result.json
-          echo ""
+          BASE="${BASE%/}"
+          curl -sf -X POST "${BASE}/api/tracker/settle?sport=nba"
