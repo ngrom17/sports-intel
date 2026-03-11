@@ -1939,3 +1939,290 @@ input[type="range"]:focus-visible {
   .landing-features { grid-template-columns: repeat(2, 1fr); }
   .landing-transparency-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║  LANDING v3 — Design System Additions                       ║
+   ║  Primitives designed to translate to iOS SwiftUI            ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+
+/* ── Pulsing live dot ─────────────────────────────────────────
+   iOS: Circle().foregroundColor(.green) + repeatForever animation */
+.lp-live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--positive);
+  flex-shrink: 0;
+  animation: lp-pulse 2s ease-in-out infinite;
+}
+@keyframes lp-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* ── Eyebrow tag ──────────────────────────────────────────────
+   iOS: Text + capsule background + accent color */
+.lp-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid rgba(26,109,255,0.22);
+  border-radius: var(--radius-pill);
+  padding: 5px 14px;
+  margin-bottom: 24px;
+}
+
+/* ── Nav secondary link ───────────────────────────────────────*/
+.lp-nav-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--transition);
+  white-space: nowrap;
+}
+.lp-nav-link:hover { color: var(--text-primary); }
+@media (max-width: 639px) { .lp-nav-link { display: none; } }
+
+/* ── Hero 2-column grid ───────────────────────────────────────
+   Mobile: 1-col centered | Desktop 1024+: copy left + preview right
+   iOS: VStack (iPhone) / HStack (iPad/Mac) based on size class  */
+.lp-hero-inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  align-items: center;
+}
+@media (min-width: 1024px) {
+  .lp-hero-inner {
+    grid-template-columns: 1fr 420px;
+    gap: 72px;
+  }
+  /* Left column: left-align on desktop */
+  .lp-hero-copy { text-align: left; }
+  .lp-hero-copy .landing-hero-sub   { margin-left: 0; margin-right: 0; }
+  .lp-hero-copy .landing-hero-actions { justify-content: flex-start; }
+  .lp-hero-copy .lp-trust-strip    { justify-content: flex-start; }
+  .lp-hero-copy .lp-eyebrow        { /* stays inline-flex, no override needed */ }
+}
+
+/* Hide preview on small mobile — too cramped */
+@media (max-width: 639px) {
+  .lp-hero-preview-wrap { display: none; }
+}
+
+/* ── Dashboard preview card ───────────────────────────────────
+   iOS: RoundedRectangle card + List { PickRow }               */
+.lp-preview {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.45), 0 0 0 1px var(--border);
+}
+.lp-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 16px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+.lp-preview-live {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.lp-preview-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid rgba(26,109,255,0.2);
+  border-radius: var(--radius-pill);
+  padding: 2px 9px;
+}
+.lp-preview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.lp-preview-row:last-of-type { border-bottom: none; }
+.lp-preview-row-l {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.lp-preview-game {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.lp-preview-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lp-preview-row-r {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.lp-preview-nums {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+}
+.lp-preview-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 16px;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── Icon tile ────────────────────────────────────────────────
+   Base primitive: bordered rounded square with accent icon
+   iOS: ZStack { RoundedRectangle(cornerRadius:10), Image } */
+.lp-icon-tile {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Step number (How It Works) ───────────────────────────────*/
+.lp-step {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  opacity: 0.8;
+}
+
+/* ── Why It's Different grid ──────────────────────────────────
+   iOS: LazyVGrid(columns: [GridItem(.flexible(), minimum:200)]) */
+.lp-why-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 640px)  { .lp-why-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.lp-why-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  transition: border-color var(--transition);
+}
+.lp-why-card:hover { border-color: var(--border-light); }
+.lp-why-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+.lp-why-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ── Signal categories grid ───────────────────────────────────
+   1-col mobile → 2-col tablet → 3-col desktop (5th card spans)
+   iOS: LazyVGrid adaptive min 160                             */
+.lp-cat-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 640px)  { .lp-cat-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .lp-cat-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.lp-cat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color var(--transition);
+}
+.lp-cat-card:hover { border-color: var(--border-light); }
+.lp-cat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lp-cat-threshold {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+.lp-cat-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ── Responsive overrides for existing landing elements ───────*/
+@media (max-width: 639px) {
+  .landing-hero { padding: 64px 0 52px; text-align: center; }
+  .landing-hero-title  { font-size: clamp(2rem, 9vw, 2.8rem); }
+  .landing-hero-sub    { font-size: 15px; }
+  .landing-hero-actions { flex-direction: column; align-items: stretch; }
+  .landing-cta-primary, .landing-cta-ghost { text-align: center; justify-content: center; }
+  .landing-features    { grid-template-columns: 1fr; }
+  .landing-transparency-grid { grid-template-columns: 1fr; }
+  .lp-why-grid         { grid-template-columns: 1fr; }
+  .lp-cat-grid         { grid-template-columns: 1fr; }
+  .lp-trust-strip      { justify-content: center; }
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+  .landing-features          { grid-template-columns: repeat(2, 1fr); }
+  .landing-transparency-grid { grid-template-columns: repeat(2, 1fr); }
+  .lp-trust-strip            { justify-content: center; }
+}
