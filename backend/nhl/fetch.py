@@ -66,15 +66,11 @@ def dates_in_markets(kalshi_by_type: Dict[str, List[Dict]]) -> Set[date]:
 
 # ── NHL games ──────────────────────────────────────────────────────────────
 
-def fetch_games(game_date: date) -> List[Dict]:
-    """
-    Fetch NHL games for a given date from the NHL Stats API.
-    Returns status: 'scheduled' | 'in_progress' | 'final'
-    """
+def _fetch_games_impl(game_date: date) -> List[Dict]:
     try:
         resp = requests.get(
             f"{NHL_API_BASE}/score/{game_date.isoformat()}",
-            timeout=8,
+            timeout=20,
             allow_redirects=True,
         )
         resp.raise_for_status()
@@ -121,6 +117,17 @@ def fetch_games(game_date: date) -> List[Dict]:
 
     except Exception:
         return []
+
+
+def fetch_games(game_date: date) -> List[Dict]:
+    """Fetch NHL games for a date, cached for 60 seconds (live updates)."""
+    key = f"nhl_games_{game_date.isoformat()}"
+    # Use longer TTL for past/future dates; 60s for today
+    from zoneinfo import ZoneInfo
+    from datetime import datetime as _dt
+    et_today = _dt.now(ZoneInfo("America/New_York")).date()
+    ttl = 60 if game_date == et_today else 300
+    return _cached(key, ttl, lambda: _fetch_games_impl(game_date))
 
 
 def fetch_games_for_markets(kalshi_by_type: Dict[str, List[Dict]]) -> List[Dict]:
