@@ -64,17 +64,24 @@ def log_daily_picks(
     model_ver = MODEL_VERSION.get(sport, f"{sport}-v1")
     now = datetime.now(timezone.utc).isoformat()
 
-    # Filter and rank eligible picks
-    eligible = sorted(
-        [
-            r for r in rows
-            if r.get("category") in ELIGIBLE_CATEGORIES
-            and r.get("edge", 0) >= MIN_EDGE
-            and r.get("ev", 0) > 0
-        ],
-        key=lambda x: x.get("ev", 0),
-        reverse=True,
-    )
+    # Filter eligible picks
+    candidates = [
+        r for r in rows
+        if r.get("category") in ELIGIBLE_CATEGORIES
+        and r.get("edge", 0) >= MIN_EDGE
+        and r.get("ev", 0) > 0
+    ]
+
+    # Deduplicate: keep only the best EV pick per (game_id, market_type).
+    # Prevents logging both "home wins" and "away wins" for the same game,
+    # or multiple over/under lines for the same game.
+    seen_game_market: dict = {}
+    for r in sorted(candidates, key=lambda x: x.get("ev", 0), reverse=True):
+        key = (r.get("game_id"), r.get("market_type", "moneyline"))
+        if key not in seen_game_market:
+            seen_game_market[key] = r
+
+    eligible = sorted(seen_game_market.values(), key=lambda x: x.get("ev", 0), reverse=True)
 
     if not eligible:
         return {"status": "no_eligible_picks", "sport": sport, "date": str(today), "picks_logged": 0}
