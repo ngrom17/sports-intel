@@ -139,8 +139,8 @@ def fetch_games_for_markets(kalshi_by_type: Dict[str, List[Dict]]) -> List[Dict]
 
     results: List[Dict] = []
     with ThreadPoolExecutor(max_workers=4) as executor:
-        futures = {executor.submit(fetch_games, d): d for d in fetch_dates}
-        for fut in as_completed(futures, timeout=12):
+        futures = [executor.submit(fetch_games, d) for d in fetch_dates]
+        for fut in as_completed(futures):
             try:
                 results.extend(fut.result())
             except Exception:
