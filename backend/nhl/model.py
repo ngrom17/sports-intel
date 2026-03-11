@@ -74,6 +74,56 @@ def win_probability(
 # Kalshi moneyline title format: "X at Y Winner?"
 _TITLE_RE = re.compile(r"^(.+?)\s+at\s+(.+?)\s+Winner\?$", re.IGNORECASE)
 
+# NHL API /score returns only the team nickname (e.g. "Bruins"), not the full
+# city name that Kalshi uses in titles (e.g. "Boston"). Map Kalshi city phrases
+# → NHL canonical abbreviations so we can match by abbrev instead of name.
+_CITY_TO_ABBREV: Dict[str, str] = {
+    "Anaheim":      "ANA",
+    "Boston":       "BOS",
+    "Buffalo":      "BUF",
+    "Calgary":      "CGY",
+    "Carolina":     "CAR",
+    "Chicago":      "CHI",
+    "Colorado":     "COL",
+    "Columbus":     "CBJ",
+    "Dallas":       "DAL",
+    "Detroit":      "DET",
+    "Edmonton":     "EDM",
+    "Florida":      "FLA",
+    "Los Angeles":  "LAK",
+    "Minnesota":    "MIN",
+    "Montreal":     "MTL",
+    "Nashville":    "NSH",
+    "New Jersey":   "NJD",
+    "New York I":   "NYI",   # Islanders
+    "New York R":   "NYR",   # Rangers
+    "Ottawa":       "OTT",
+    "Philadelphia": "PHI",
+    "Pittsburgh":   "PIT",
+    "San Jose":     "SJS",
+    "Seattle":      "SEA",
+    "St. Louis":    "STL",
+    "Tampa Bay":    "TBL",
+    "Toronto":      "TOR",
+    "Utah":         "UTA",
+    "Vancouver":    "VAN",
+    "Vegas":        "VGK",
+    "Washington":   "WSH",
+    "Winnipeg":     "WPG",
+}
+
+def _phrase_to_abbrev(phrase: str) -> Optional[str]:
+    """Map a Kalshi city phrase to the canonical NHL team abbreviation."""
+    phrase = phrase.strip()
+    # Exact match first
+    if phrase in _CITY_TO_ABBREV:
+        return _CITY_TO_ABBREV[phrase]
+    # Prefix match for long phrases (e.g. "New York Islanders" → "New York I")
+    for city, abbrev in _CITY_TO_ABBREV.items():
+        if phrase.startswith(city) or city.startswith(phrase):
+            return abbrev
+    return None
+
 
 def _parse_title(title: str) -> Optional[Tuple[str, str]]:
     """
@@ -86,33 +136,21 @@ def _parse_title(title: str) -> Optional[Tuple[str, str]]:
     return m.group(1).strip(), m.group(2).strip()
 
 
-def _name_matches(phrase: str, full_name: str) -> bool:
-    """
-    Check if a Kalshi short team phrase matches an NHL full team name.
-    Kalshi often truncates: "New York I" matches "New York Islanders",
-    "New York R" matches "New York Rangers", "Los Angeles" matches "Los Angeles Kings".
-
-    Strategy: the full name must start with the phrase, or the phrase is contained
-    within the full name, using case-insensitive comparison.
-    """
-    phrase_l = phrase.lower().strip()
-    name_l   = full_name.lower().strip()
-    return name_l.startswith(phrase_l) or phrase_l in name_l
-
-
 def _match_game(
     away_phrase: str,
     home_phrase: str,
     games: List[Dict],
 ) -> Optional[Dict]:
     """
-    Find the NHL API game whose away/home team names match the given phrases.
-    Returns the game dict or None.
+    Match Kalshi "Away at Home" title to an NHL API game.
+    Uses city-phrase → abbrev lookup (NHL API only returns nicknames, not cities).
     """
+    away_abbr = _phrase_to_abbrev(away_phrase)
+    home_abbr = _phrase_to_abbrev(home_phrase)
+    if not away_abbr or not home_abbr:
+        return None
     for g in games:
-        away_name = g.get("away_name", "")
-        home_name = g.get("home_name", "")
-        if _name_matches(away_phrase, away_name) and _name_matches(home_phrase, home_name):
+        if g.get("away_abbr") == away_abbr and g.get("home_abbr") == home_abbr:
             return g
     return None
 
