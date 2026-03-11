@@ -1,6 +1,13 @@
 """Sports predictions router — NBA + NHL live, other sports stubbed."""
-from datetime import date
+from datetime import datetime, date
+from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Query
+
+_ET = ZoneInfo("America/New_York")
+
+def _today() -> date:
+    """Return today's date in US Eastern Time (all sports schedules run on ET)."""
+    return datetime.now(_ET).date()
 
 router = APIRouter()
 
@@ -67,7 +74,7 @@ def get_predictions(
         from nba.fetch import fetch_games, fetch_kalshi_markets, fetch_nba_stats, load_schedule
         from nba.model import build_all_rows
 
-        games       = fetch_games(date.today())
+        games       = fetch_games(_today())
         kalshi      = fetch_kalshi_markets()
         stats_df    = fetch_nba_stats()
         schedule_df = load_schedule()
@@ -92,7 +99,7 @@ def get_predictions(
         from nhl.fetch import fetch_games, fetch_kalshi_markets, fetch_standings
         from nhl.model import build_all_rows
 
-        games      = fetch_games(date.today())
+        games      = fetch_games(_today())
         kalshi     = fetch_kalshi_markets()
         standings  = fetch_standings()
         df   = build_all_rows(games, kalshi, standings, {}, thresholds, kelly_fraction)

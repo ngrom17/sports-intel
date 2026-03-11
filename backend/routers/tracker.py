@@ -3,8 +3,14 @@ Institutional tracker — logging, settlement, and analytics endpoints.
 All write operations are idempotent. All reads are sport-filterable.
 """
 from collections import defaultdict
-from datetime import date
+from datetime import datetime, date
+from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Query
+
+_ET = ZoneInfo("America/New_York")
+
+def _today() -> date:
+    return datetime.now(_ET).date()
 
 router = APIRouter()
 
@@ -51,7 +57,7 @@ def log_today(sport: str = Query(default="nba")):
     Inserts market_snapshots + model_predictions + daily_picks.
     """
     from tracker.logger import log_daily_picks
-    today  = date.today()
+    today  = _today()
     fetcher = SPORT_FETCHERS.get(sport.lower())
     if not fetcher:
         return {"status": "sport_not_supported", "sport": sport}
@@ -66,7 +72,7 @@ def capture_closing(sport: str = Query(default="nba")):
     Call ~30 min before first tipoff. Idempotent.
     """
     from tracker.settler import capture_closing_prices
-    today   = date.today()
+    today   = _today()
     fetcher = SPORT_FETCHERS.get(sport.lower())
     if not fetcher:
         return {"status": "sport_not_supported", "sport": sport}
@@ -82,7 +88,7 @@ def settle(sport: str = Query(default="nba")):
     Looks up closing prices for CLV, writes one settlement row per pick.
     """
     from tracker.settler import settle_pending_picks
-    today   = date.today()
+    today   = _today()
     fetcher = SPORT_FETCHERS.get(sport.lower())
     if not fetcher:
         return {"status": "sport_not_supported", "sport": sport}
