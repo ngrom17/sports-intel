@@ -139,31 +139,52 @@ export default function Tracker() {
 
       <main className="main">
 
-        {/* ── Admin actions ─────────────────────────────────── */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        {/* ── Action bar ────────────────────────────────────── */}
+        <div className="action-bar">
+          <span className="action-bar-label">Actions</span>
+
+          {/* Primary: log picks */}
           <button
-            className="nav-settings-btn"
+            className="action-btn action-btn-primary"
             onClick={() => mutLog.mutate()}
             disabled={mutLog.isPending}
           >
-            {mutLog.isPending ? "Logging…" : "⬆ Log Today's Picks"}
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 2v8M4.5 6l3.5-4 3.5 4" />
+              <path d="M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2" />
+            </svg>
+            {mutLog.isPending ? "Logging…" : "Log Today's Picks"}
           </button>
+
+          {/* Secondary: capture closing */}
           <button
-            className="nav-settings-btn"
+            className="action-btn action-btn-secondary"
             onClick={() => mutClosing.mutate()}
             disabled={mutClosing.isPending}
           >
-            {mutClosing.isPending ? "Capturing…" : "📸 Capture Closing Prices"}
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="8" cy="9" r="3" />
+              <path d="M1 6h2l1.5-2h7L13 6h2v7a1 1 0 01-1 1H2a1 1 0 01-1-1V6z" />
+            </svg>
+            {mutClosing.isPending ? "Capturing…" : "Capture Closing"}
           </button>
+
+          {/* Secondary: settle */}
           <button
-            className="nav-settings-btn"
+            className="action-btn action-btn-secondary"
             onClick={() => mutSettle.mutate()}
             disabled={mutSettle.isPending}
           >
-            {mutSettle.isPending ? "Settling…" : "✓ Settle Final Games"}
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="8" cy="8" r="6.5" />
+              <path d="M5 8l2 2 4-4" />
+            </svg>
+            {mutSettle.isPending ? "Settling…" : "Settle Final Games"}
           </button>
+
+          {/* Inline response feedback */}
           {(mutLog.data || mutSettle.data || mutClosing.data) && (
-            <span style={{ fontSize: 12, color: "var(--text-muted)", alignSelf: "center" }}>
+            <span className="action-result">
               {JSON.stringify((mutLog.data ?? mutSettle.data ?? mutClosing.data) as Record<string, unknown>)}
             </span>
           )}

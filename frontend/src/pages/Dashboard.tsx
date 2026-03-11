@@ -87,7 +87,7 @@ export default function Dashboard() {
           </div>
 
           <div className="nav-right">
-            <a href="/tracker" className="nav-sport-btn" style={{ textDecoration: "none" }}>📊 Tracker</a>
+            <a href="/tracker" className="nav-sport-btn" style={{ textDecoration: "none" }}>Tracker</a>
             {liveGames.length > 0 && <span className="live-dot" title="Live games in progress" />}
             {lastUpdate && <span className="refresh-time">Updated {lastUpdate}</span>}
             <button
