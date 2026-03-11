@@ -15,8 +15,7 @@ on:
         options: [log, capture-closing, settle]
 
 env:
-  # Strip any trailing slash so URLs always join cleanly
-  BASE: ${{ secrets.API_URL }}
+  BASE: https://sports-intel-api.fly.dev
 
 jobs:
   log-picks:
@@ -27,9 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: POST /tracker/log — NBA
-        run: |
-          BASE="${BASE%/}"
-          curl -sf -X POST "${BASE}/api/tracker/log?sport=nba"
+        run: curl -sf -X POST "${BASE}/api/tracker/log?sport=nba"
 
   capture-closing:
     name: Capture Closing Prices
@@ -39,9 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: POST /tracker/capture-closing — NBA
-        run: |
-          BASE="${BASE%/}"
-          curl -sf -X POST "${BASE}/api/tracker/capture-closing?sport=nba"
+        run: curl -sf -X POST "${BASE}/api/tracker/capture-closing?sport=nba"
 
   settle:
     name: Settle Final Games
@@ -51,6 +46,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: POST /tracker/settle — NBA
-        run: |
-          BASE="${BASE%/}"
-          curl -sf -X POST "${BASE}/api/tracker/settle?sport=nba"
+        run: curl -sf -X POST "${BASE}/api/tracker/settle?sport=nba"
