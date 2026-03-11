@@ -1,4 +1,5 @@
 """Sports predictions router — NBA + NHL live, other sports stubbed."""
+import math
 from datetime import datetime, date
 from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Query
@@ -8,6 +9,16 @@ _ET = ZoneInfo("America/New_York")
 def _today() -> date:
     """Return today's date in US Eastern Time (all sports schedules run on ET)."""
     return datetime.now(_ET).date()
+
+def _clean_rows(rows: list) -> list:
+    """Replace NaN/Inf float values with 0 so FastAPI can JSON-serialize them."""
+    float_keys = {"ev", "kelly", "edge", "kalshi_prob", "model_prob"}
+    for r in rows:
+        for k in float_keys:
+            v = r.get(k)
+            if isinstance(v, float) and not math.isfinite(v):
+                r[k] = 0.0
+    return rows
 
 router = APIRouter()
 
@@ -80,7 +91,7 @@ def get_predictions(
         schedule_df = load_schedule()
         weights     = {"w_xgb": w_xgb}
         df   = build_all_rows(games, kalshi, stats_df, schedule_df, weights, thresholds, kelly_fraction)
-        rows = df.to_dict(orient="records") if not df.empty else []
+        rows = _clean_rows(df.to_dict(orient="records") if not df.empty else [])
 
         return {
             "sport":         "nba",
@@ -103,7 +114,7 @@ def get_predictions(
         games      = fetch_games_for_markets(kalshi)
         standings  = fetch_standings()
         df   = build_all_rows(games, kalshi, standings, {}, thresholds, kelly_fraction)
-        rows = df.to_dict(orient="records") if not df.empty else []
+        rows = _clean_rows(df.to_dict(orient="records") if not df.empty else [])
 
         return {
             "sport":         "nhl",
