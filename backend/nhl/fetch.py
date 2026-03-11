@@ -9,9 +9,10 @@ No API key required for the NHL API.
 """
 
 import os
+import re
 import time
 from datetime import date, datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 import pandas as pd
 import requests
@@ -28,6 +29,39 @@ def _cached(key: str, ttl: int, fn):
     data = fn()
     _cache[key] = {"data": data, "ts": now}
     return data
+
+
+# ── Kalshi date extraction ─────────────────────────────────────────────────
+
+_DATE_RE = re.compile(r"KXNHL\w+-(\d{2})([A-Z]{3})(\d{2})", re.IGNORECASE)
+_MONTHS  = {m: i for i, m in enumerate(
+    ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"], start=1
+)}
+
+def _extract_market_date(ticker: str) -> Optional[date]:
+    """Parse game date from a Kalshi NHL ticker like KXNHLGAME-26MAR12NSHVAN-VAN."""
+    m = _DATE_RE.match(ticker)
+    if not m:
+        return None
+    yr, mon_str, day = int(m.group(1)), m.group(2).upper(), int(m.group(3))
+    month = _MONTHS.get(mon_str)
+    if not month:
+        return None
+    try:
+        return date(2000 + yr, month, day)
+    except ValueError:
+        return None
+
+
+def dates_in_markets(kalshi_by_type: Dict[str, List[Dict]]) -> Set[date]:
+    """Return the set of game dates found across all open Kalshi markets."""
+    dates: Set[date] = set()
+    for markets in kalshi_by_type.values():
+        for mkt in markets:
+            d = _extract_market_date(mkt.get("ticker", ""))
+            if d:
+                dates.add(d)
+    return dates
 
 
 # ── NHL games ──────────────────────────────────────────────────────────────
@@ -87,6 +121,33 @@ def fetch_games(game_date: date) -> List[Dict]:
 
     except Exception:
         return []
+
+
+def fetch_games_for_markets(kalshi_by_type: Dict[str, List[Dict]]) -> List[Dict]:
+    """
+    Fetch NHL games for every date that has open Kalshi markets.
+    Falls back to today (ET) if no market dates are found.
+    Returns a merged, deduplicated list of games across all dates.
+    """
+    from zoneinfo import ZoneInfo
+    from datetime import datetime as _dt
+
+    et_today = _dt.now(ZoneInfo("America/New_York")).date()
+    market_dates = dates_in_markets(kalshi_by_type)
+
+    # Always include today so live games show; add all Kalshi market dates
+    fetch_dates = market_dates | {et_today}
+
+    seen_ids: set = set()
+    all_games: List[Dict] = []
+    for d in sorted(fetch_dates):
+        for g in fetch_games(d):
+            gid = g["game_id"]
+            if gid not in seen_ids:
+                seen_ids.add(gid)
+                all_games.append(g)
+
+    return all_games
 
 
 # ── NHL standings (1-hour cache) ───────────────────────────────────────────

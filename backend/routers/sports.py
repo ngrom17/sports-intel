@@ -96,11 +96,11 @@ def get_predictions(
 
     # NHL live path
     if sport == "nhl":
-        from nhl.fetch import fetch_games, fetch_kalshi_markets, fetch_standings
+        from nhl.fetch import fetch_kalshi_markets, fetch_games_for_markets, fetch_standings
         from nhl.model import build_all_rows
 
-        games      = fetch_games(_today())
         kalshi     = fetch_kalshi_markets()
+        games      = fetch_games_for_markets(kalshi)
         standings  = fetch_standings()
         df   = build_all_rows(games, kalshi, standings, {}, thresholds, kelly_fraction)
         rows = df.to_dict(orient="records") if not df.empty else []
