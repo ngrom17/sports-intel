@@ -2,7 +2,7 @@ name: Tracker Daily Automation
 
 on:
   schedule:
-    # All times UTC. NBA season runs Oct–Jun.
+    # All times UTC. NBA season runs Oct–Jun; NHL runs Oct–Jun.
     - cron: '0 16 * * *'    # 11:00 AM ET — Log Today's Picks
     - cron: '30 23 * * *'   # 6:30 PM ET  — Capture Closing Prices
     - cron: '0 6 * * *'     # 1:00 AM ET  — Settle Final Games
@@ -13,6 +13,10 @@ on:
         required: true
         type: choice
         options: [log, capture-closing, settle]
+      sport:
+        description: 'Sport (leave blank to run all)'
+        required: false
+        default: ''
 
 env:
   BASE: https://sports-intel-api.fly.dev
@@ -26,7 +30,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: POST /tracker/log — NBA
+        if: github.event.inputs.sport == '' || github.event.inputs.sport == 'nba'
         run: curl -sf -X POST "${BASE}/api/tracker/log?sport=nba"
+      - name: POST /tracker/log — NHL
+        if: github.event.inputs.sport == '' || github.event.inputs.sport == 'nhl'
+        run: curl -sf -X POST "${BASE}/api/tracker/log?sport=nhl"
 
   capture-closing:
     name: Capture Closing Prices
@@ -36,7 +44,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: POST /tracker/capture-closing — NBA
+        if: github.event.inputs.sport == '' || github.event.inputs.sport == 'nba'
         run: curl -sf -X POST "${BASE}/api/tracker/capture-closing?sport=nba"
+      - name: POST /tracker/capture-closing — NHL
+        if: github.event.inputs.sport == '' || github.event.inputs.sport == 'nhl'
+        run: curl -sf -X POST "${BASE}/api/tracker/capture-closing?sport=nhl"
 
   settle:
     name: Settle Final Games
@@ -46,4 +58,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: POST /tracker/settle — NBA
+        if: github.event.inputs.sport == '' || github.event.inputs.sport == 'nba'
         run: curl -sf -X POST "${BASE}/api/tracker/settle?sport=nba"
+      - name: POST /tracker/settle — NHL
+        if: github.event.inputs.sport == '' || github.event.inputs.sport == 'nhl'
+        run: curl -sf -X POST "${BASE}/api/tracker/settle?sport=nhl"

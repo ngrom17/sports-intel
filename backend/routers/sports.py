@@ -1,4 +1,4 @@
-"""Sports predictions router — NBA live, other sports stubbed."""
+"""Sports predictions router — NBA + NHL live, other sports stubbed."""
 from datetime import date
 from fastapi import APIRouter, Query
 
@@ -6,10 +6,10 @@ router = APIRouter()
 
 SUPPORTED_SPORTS = {
     "nba":   {"label": "NBA",   "live": True},
+    "nhl":   {"label": "NHL",   "live": True},
     "nfl":   {"label": "NFL",   "live": False},
     "ncaab": {"label": "NCAAB", "live": False},
     "mlb":   {"label": "MLB",   "live": False},
-    "nhl":   {"label": "NHL",   "live": False},
 }
 
 
@@ -55,16 +55,6 @@ def get_predictions(
             "rows":          [],
         }
 
-    # NBA live path
-    from nba.fetch import fetch_games, fetch_kalshi_markets, fetch_nba_stats, load_schedule
-    from nba.model import build_all_rows
-
-    games       = fetch_games(date.today())
-    kalshi      = fetch_kalshi_markets()
-    stats_df    = fetch_nba_stats()
-    schedule_df = load_schedule()
-
-    weights = {"w_xgb": w_xgb}
     thresholds = {
         "HOMERUN":     {"edge": homerun_edge, "model_prob": homerun_model_prob},
         "UNDERVALUED": {"edge": undervalued_edge},
@@ -72,17 +62,53 @@ def get_predictions(
         "SHARP":       {"edge_min": sharp_edge_min, "edge_max": sharp_edge_max},
     }
 
-    df   = build_all_rows(games, kalshi, stats_df, schedule_df, weights, thresholds, kelly_fraction)
-    rows = df.to_dict(orient="records") if not df.empty else []
+    # NBA live path
+    if sport == "nba":
+        from nba.fetch import fetch_games, fetch_kalshi_markets, fetch_nba_stats, load_schedule
+        from nba.model import build_all_rows
 
-    return {
-        "sport":         "nba",
-        "games_count":   len(games),
-        "markets_count": len(rows),
-        "positive_ev":   sum(1 for r in rows if r.get("ev", 0) > 0),
-        "positive_edge": sum(1 for r in rows if r.get("edge", 0) > 0),
-        "stats_loaded":  any(r.get("stats_loaded") for r in rows),
-        "coming_soon":   False,
-        "games":         games,
-        "rows":          rows,
-    }
+        games       = fetch_games(date.today())
+        kalshi      = fetch_kalshi_markets()
+        stats_df    = fetch_nba_stats()
+        schedule_df = load_schedule()
+        weights     = {"w_xgb": w_xgb}
+        df   = build_all_rows(games, kalshi, stats_df, schedule_df, weights, thresholds, kelly_fraction)
+        rows = df.to_dict(orient="records") if not df.empty else []
+
+        return {
+            "sport":         "nba",
+            "games_count":   len(games),
+            "markets_count": len(rows),
+            "positive_ev":   sum(1 for r in rows if r.get("ev", 0) > 0),
+            "positive_edge": sum(1 for r in rows if r.get("edge", 0) > 0),
+            "stats_loaded":  any(r.get("stats_loaded") for r in rows),
+            "coming_soon":   False,
+            "games":         games,
+            "rows":          rows,
+        }
+
+    # NHL live path
+    if sport == "nhl":
+        from nhl.fetch import fetch_games, fetch_kalshi_markets, fetch_standings
+        from nhl.model import build_all_rows
+
+        games      = fetch_games(date.today())
+        kalshi     = fetch_kalshi_markets()
+        standings  = fetch_standings()
+        df   = build_all_rows(games, kalshi, standings, {}, thresholds, kelly_fraction)
+        rows = df.to_dict(orient="records") if not df.empty else []
+
+        return {
+            "sport":         "nhl",
+            "games_count":   len(games),
+            "markets_count": len(rows),
+            "positive_ev":   sum(1 for r in rows if r.get("ev", 0) > 0),
+            "positive_edge": sum(1 for r in rows if r.get("edge", 0) > 0),
+            "stats_loaded":  any(r.get("stats_loaded") for r in rows),
+            "coming_soon":   False,
+            "games":         games,
+            "rows":          rows,
+        }
+
+    # Fallback (should not reach here since live=True only for nba/nhl above)
+    return {"sport": sport, "rows": [], "games": [], "coming_soon": True}

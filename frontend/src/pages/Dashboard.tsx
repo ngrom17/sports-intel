@@ -137,7 +137,7 @@ export default function Dashboard() {
         {/* Warnings */}
         {data && !data.stats_loaded && !data.coming_soon && (
           <div className="warning-banner">
-            ⚠️ NBA stats unavailable — predictions use 50/50 baseline. Model edge may be unreliable.
+            ⚠️ {sport.toUpperCase()} stats unavailable — predictions use baseline model. Edge may be unreliable.
           </div>
         )}
 
@@ -169,7 +169,6 @@ export default function Dashboard() {
         {/* No games */}
         {data && !data.coming_soon && data.games_count === 0 && (
           <div className="empty-state">
-            <div className="empty-state-icon">🏀</div>
             <div className="empty-state-title">No Games Today</div>
             <div className="empty-state-body">No {sport.toUpperCase()} games scheduled.</div>
           </div>

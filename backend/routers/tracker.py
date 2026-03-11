@@ -24,9 +24,21 @@ def _fetch_nba_data(today: date) -> tuple[list, list]:
     return games, rows
 
 
+def _fetch_nhl_data(today: date) -> tuple[list, list]:
+    """Fetch games + prediction rows for NHL. Returns (games, rows)."""
+    from nhl.fetch import fetch_games, fetch_kalshi_markets, fetch_standings
+    from nhl.model import build_all_rows
+    games      = fetch_games(today)
+    kalshi     = fetch_kalshi_markets()
+    standings  = fetch_standings()
+    df         = build_all_rows(games, kalshi, standings, {})
+    rows       = df.to_dict(orient="records") if not df.empty else []
+    return games, rows
+
+
 SPORT_FETCHERS = {
     "nba": _fetch_nba_data,
-    # Add: "nhl": _fetch_nhl_data, "ncaab": _fetch_ncaab_data, etc.
+    "nhl": _fetch_nhl_data,
 }
 
 
