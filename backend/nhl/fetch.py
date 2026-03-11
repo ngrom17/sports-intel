@@ -41,6 +41,7 @@ def fetch_games(game_date: date) -> List[Dict]:
         resp = requests.get(
             f"{NHL_API_BASE}/score/{game_date.isoformat()}",
             timeout=15,
+            allow_redirects=True,
         )
         resp.raise_for_status()
         data = resp.json()
@@ -100,6 +101,7 @@ def _fetch_standings_impl() -> Optional[pd.DataFrame]:
         resp = requests.get(
             f"{NHL_API_BASE}/standings/now",
             timeout=15,
+            allow_redirects=True,
         )
         resp.raise_for_status()
         rows = []
