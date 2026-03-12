@@ -318,6 +318,7 @@ def build_all_rows(
                 "volume":        mkt.get("volume", 0),
                 "stats_loaded":  stats_available,
                 "side":          side,
+                "winner_abbr":   winner_key if market_type == "moneyline" else None,
                 "line":          None,
                 "status":        game.get("status", ""),
                 "tipoff_utc":    game.get("tipoff_utc", ""),

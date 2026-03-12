@@ -4,6 +4,7 @@ import { fetchSports, fetchPredictions } from "@/lib/api";
 import type { PredictionRow, ModelSettings } from "@/types/sports";
 import { DEFAULT_SETTINGS } from "@/types/sports";
 import GameCard from "@/components/GameCard";
+import { contractLabel } from "@/components/PickDetailModal";
 import TopPicks from "@/components/TopPicks";
 import CategoryBadge from "@/components/CategoryBadge";
 import ModelSettingsPanel from "@/components/ModelSettingsPanel";
@@ -207,7 +208,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            <TopPicks rows={data.rows} />
+            <TopPicks rows={data.rows} sport={sport} />
 
             <div className="section">
               <div className="section-header">
@@ -250,7 +251,7 @@ export default function Dashboard() {
                             <tr key={r.ticker}>
                               <td className="cell-game-label">{r.game_label}</td>
                               <td className="cell-contract" title={r.title}>
-                                {r.market_type === "total" && r.line != null ? `Over ${r.line}` : r.title}
+                                {contractLabel(r)}
                               </td>
                               <td><span className="odds-btn">{r.american_odds}</span></td>
                               <td className={`cell-edge ${r.edge > 0 ? "positive" : "negative"}`}>

@@ -72,12 +72,13 @@ def log_daily_picks(
         and r.get("ev", 0) > 0
     ]
 
-    # Deduplicate: keep only the best EV pick per (game_id, market_type).
-    # Prevents logging both "home wins" and "away wins" for the same game,
-    # or multiple over/under lines for the same game.
+    # Deduplicate: keep only the best EV pick per (game_id, market_type, side).
+    # side distinguishes over/under totals; None covers moneylines/spreads so
+    # only one direction (the higher-EV one) is kept per moneyline game.
     seen_game_market: dict = {}
     for r in sorted(candidates, key=lambda x: x.get("ev", 0), reverse=True):
-        key = (r.get("game_id"), r.get("market_type", "moneyline"))
+        side = r.get("side")  # "over" | "under" | None
+        key = (r.get("game_id"), r.get("market_type", "moneyline"), side)
         if key not in seen_game_market:
             seen_game_market[key] = r
 

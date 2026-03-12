@@ -2286,3 +2286,420 @@ input[type="range"]:focus-visible {
   .landing-transparency-grid { grid-template-columns: repeat(2, 1fr); }
   .lp-trust-strip            { justify-content: center; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   PICK DETAIL MODAL
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Clickable pick card variant ─────────────────────────────── */
+.pick-card-clickable {
+  cursor: pointer;
+}
+.pick-card-clickable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.pick-card-hint {
+  font-size: 10px;
+  color: var(--text-disabled);
+  text-align: right;
+  transition: color var(--transition);
+}
+.pick-card-clickable:hover .pick-card-hint {
+  color: var(--accent);
+}
+
+/* ── Native <dialog> ──────────────────────────────────────────── */
+.modal-dialog {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  margin: 0;
+  padding: 0;
+  width: min(480px, 100vw);
+  height: 100dvh;
+  max-height: 100dvh;
+  background: transparent;
+  border: none;
+  outline: none;
+  overflow: visible;
+}
+
+.modal-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.60);
+  backdrop-filter: blur(2px);
+}
+
+/* ── Drawer panel ─────────────────────────────────────────────── */
+.modal-drawer {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.5);
+  animation: slideIn 200ms ease;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* ── Header ───────────────────────────────────────────────────── */
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg-elevated);
+}
+
+.modal-header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.modal-game-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.modal-contract-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modal-close {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+.modal-close:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+/* ── Scrollable body ──────────────────────────────────────────── */
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* ── Section ──────────────────────────────────────────────────── */
+.modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.modal-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding-bottom: var(--sp-1);
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-section-badge {
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--text-disabled);
+  border: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: auto;
+}
+
+/* ── Probability bars ─────────────────────────────────────────── */
+.prob-bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.prob-bar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.prob-bar-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  width: 44px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.prob-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.prob-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 400ms ease;
+}
+
+.prob-bar-value {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-primary);
+  width: 44px;
+  flex-shrink: 0;
+}
+
+.edge-gap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  padding: 5px 12px;
+  border-radius: var(--radius-md);
+  align-self: flex-start;
+}
+.edge-gap.positive {
+  background: var(--positive-bg);
+  color: var(--positive);
+  border: 1px solid rgba(46, 213, 115, 0.25);
+}
+.edge-gap.negative {
+  background: var(--negative-bg);
+  color: var(--negative);
+  border: 1px solid rgba(255, 71, 87, 0.25);
+}
+
+.modal-reason-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+}
+
+/* ── EV formula ───────────────────────────────────────────────── */
+.ev-formula {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-family: var(--font-mono);
+}
+
+.ev-formula-term {
+  font-weight: 600;
+}
+.ev-formula-op {
+  color: var(--text-muted);
+}
+.ev-formula-result {
+  font-size: 15px;
+  font-weight: 800;
+}
+.ev-formula-term.positive { color: var(--positive); }
+.ev-formula-term.negative { color: var(--negative); }
+.ev-formula-result.positive { color: var(--positive); }
+.ev-formula-result.negative { color: var(--negative); }
+
+/* ── Kelly row ────────────────────────────────────────────────── */
+.kelly-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-2);
+}
+
+.kelly-tile {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.kelly-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kelly-value {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--accent);
+}
+
+/* ── Market context grid ──────────────────────────────────────── */
+.ctx-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-2);
+}
+
+.ctx-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-2) var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ctx-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.ctx-value {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.ctx-ticker {
+  font-size: 10px;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+/* ── Phase 2: stat row ────────────────────────────────────────── */
+.modal-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-2);
+}
+
+.modal-stat-tile {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: center;
+}
+
+.modal-stat-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+}
+
+.modal-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+.modal-stat-value.positive { color: var(--positive); }
+.modal-stat-value.negative { color: var(--negative); }
+
+.modal-locked-value {
+  font-size: 11px;
+  color: var(--text-disabled);
+  font-style: italic;
+}
+
+/* ── Phase 2: chart wrappers ──────────────────────────────────── */
+.modal-chart-wrap {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3);
+}
+
+.modal-chart-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--sp-2);
+}
+
+.modal-chart-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  background: var(--bg-elevated);
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--sp-5);
+  text-align: center;
+}
+
+.modal-chart-lock {
+  font-size: 20px;
+  opacity: 0.35;
+}
+
+.modal-chart-lock-text {
+  font-size: 11px;
+  color: var(--text-disabled);
+  line-height: 1.5;
+  max-width: 260px;
+}

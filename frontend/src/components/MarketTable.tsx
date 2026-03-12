@@ -1,17 +1,9 @@
 import type { PredictionRow } from "@/types/sports";
 import CategoryBadge from "./CategoryBadge";
+import { contractLabel } from "./PickDetailModal";
 
 function pct(v: number) { return `${(v * 100).toFixed(1)}%`; }
 function evFmt(v: number) { return `${v >= 0 ? "+" : ""}$${Math.abs(v).toFixed(2)}`; }
-
-function contractLabel(r: PredictionRow): string {
-  // Kalshi total titles are generic ("Team A at Team B: Total Points").
-  // The line is parsed from the ticker (YES = over the line).
-  if (r.market_type === "total" && r.line != null) {
-    return `Over ${r.line}`;
-  }
-  return r.title;
-}
 
 export default function MarketTable({ rows }: { rows: PredictionRow[] }) {
   if (rows.length === 0) {

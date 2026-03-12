@@ -60,6 +60,8 @@ export interface PredictionRow {
   volume:        number;
   stats_loaded:  boolean;
   line:          number | null;
+  side:          "over" | "under" | null;
+  winner_abbr:   string | null;
 }
 
 export interface PredictionsResponse {

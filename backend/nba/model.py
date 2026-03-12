@@ -174,14 +174,18 @@ def build_all_rows(games, kalshi_by_type, stats_df, schedule_df, weights,
                 if market_type == "moneyline":
                     ticker_team = mkt["ticker"].split("-")[-1]
                     model_prob  = home_prob_xgb if ticker_team == parsed["home_abbr"] else away_prob_xgb
+                    winner_abbr = ticker_team
                 elif market_type == "spread":
-                    model_prob = kalshi_prob
+                    model_prob  = kalshi_prob
+                    winner_abbr = None
                 elif market_type == "total":
                     # UO model is 50.1% (coin flip) and does not vary by line.
                     # Use kalshi_prob until a valid totals model is trained → edge = 0.
-                    model_prob = kalshi_prob
+                    model_prob  = kalshi_prob
+                    winner_abbr = None
                 else:
-                    model_prob = kalshi_prob
+                    model_prob  = kalshi_prob
+                    winner_abbr = None
 
                 w_xgb      = weights.get("w_xgb", 1.0)
                 model_prob = max(0.01, min(0.99, w_xgb * model_prob + (1 - w_xgb) * kalshi_prob))
@@ -194,6 +198,7 @@ def build_all_rows(games, kalshi_by_type, stats_df, schedule_df, weights,
                 except Exception:
                     ev = kelly = 0.0
 
+                line_val = parsed.get("line")
                 rows.append({
                     "game_id":       game["game_id"],
                     "game_label":    game_label,
@@ -211,7 +216,46 @@ def build_all_rows(games, kalshi_by_type, stats_df, schedule_df, weights,
                     "kelly":         kelly,
                     "volume":        mkt.get("volume", 0),
                     "stats_loaded":  stats_loaded,
-                    "line":          parsed.get("line"),
+                    "line":          line_val,
+                    "side":          "over" if market_type == "total" else None,
+                    "winner_abbr":   winner_abbr,
                 })
+
+                # For totals emit the NO (under) side as a separate row.
+                # kalshi_no = 1 - kalshi_yes; model_no = 1 - model_yes.
+                # With model_prob=kalshi_prob (no real UO model yet) both sides
+                # have edge=0, but the architecture is correct for when it is.
+                if market_type == "total":
+                    kalshi_no  = 1.0 - kalshi_prob
+                    model_no   = 1.0 - model_prob   # mirrors the yes-side blend
+                    edge_no    = model_no - kalshi_no
+                    cat_no     = classify_bet(edge_no, model_no, kalshi_no, market_type, thresholds)
+                    odds_no_raw = int(prob_to_american(kalshi_no).replace("+", ""))
+                    try:
+                        ev_no    = expected_value(model_no, odds_no_raw)
+                        kelly_no = kelly_criterion(odds_no_raw, model_no) * kelly_fraction
+                    except Exception:
+                        ev_no = kelly_no = 0.0
+                    rows.append({
+                        "game_id":       game["game_id"],
+                        "game_label":    game_label,
+                        "home_abbr":     home_abbr,
+                        "away_abbr":     away_abbr,
+                        "market_type":   market_type,
+                        "ticker":        mkt["ticker"] + "-NO",
+                        "title":         mkt["title"][:70],
+                        "kalshi_prob":   round(kalshi_no, 4),
+                        "model_prob":    round(model_no, 4),
+                        "edge":          round(edge_no, 4),
+                        "category":      cat_no,
+                        "american_odds": prob_to_american(kalshi_no),
+                        "ev":            ev_no,
+                        "kelly":         kelly_no,
+                        "volume":        mkt.get("volume", 0),
+                        "stats_loaded":  stats_loaded,
+                        "line":          line_val,
+                        "side":          "under",
+                        "winner_abbr":   None,
+                    })
 
     return pd.DataFrame(rows) if rows else pd.DataFrame()
